@@ -1,0 +1,29 @@
+{
+  "name": "lemmafour",
+  "displayName": "Lemmafour",
+  "version": "1.0.0",
+  "description": "Typeset Markdown with LaTeX math, tables and code into print-quality, accessible PDFs: worksheets, answer keys, reports, papers and resumes. The Lemmafour connector plus a skill for writing Markdown that renders right.",
+  "author": {
+    "name": "Lemmafour",
+    "email": "support@lemmafour.com",
+    "url": "https://lemmafour.com"
+  },
+  "homepage": "https://lemmafour.com/developers",
+  "license": "MIT",
+  "keywords": [
+    "pdf",
+    "markdown",
+    "latex",
+    "math",
+    "worksheet",
+    "accessibility",
+    "pdf-ua",
+    "typst"
+  ],
+  "icon": "./assets/icon.png",
+  "documentationUrl": "https://lemmafour.com/developers",
+  "supportUrl": "https://lemmafour.com/contact",
+  "privacyPolicyUrl": "https://lemmafour.com/privacy#ai-assistants",
+  "termsOfServiceUrl": "https://lemmafour.com/terms",
+  "repository": "https://github.com/lemmafour/claude-plugin"
+}

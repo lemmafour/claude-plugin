@@ -1,0 +1,16 @@
+{
+  "name": "lemmafour",
+  "description": "The Lemmafour plugin: Markdown and LaTeX math to print-quality, accessible PDFs.",
+  "owner": {
+    "name": "Lemmafour",
+    "email": "support@lemmafour.com",
+    "url": "https://lemmafour.com"
+  },
+  "plugins": [
+    {
+      "name": "lemmafour",
+      "source": "./",
+      "description": "Typeset Markdown with LaTeX math, tables and code into print-quality, accessible PDFs: worksheets, answer keys, reports, papers and resumes. The Lemmafour connector plus a skill for writing Markdown that renders right."
+    }
+  ]
+}

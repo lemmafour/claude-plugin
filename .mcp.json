@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "lemmafour": {
+      "type": "http",
+      "url": "https://mcp.lemmafour.com/mcp"
+    }
+  }
+}
