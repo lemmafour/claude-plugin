@@ -1,7 +1,7 @@
 {
   "name": "lemmafour",
   "displayName": "Lemmafour",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Typeset Markdown with LaTeX math, tables and code into print-quality, accessible PDFs: worksheets, answer keys, reports, papers and resumes. The Lemmafour connector plus a skill for writing Markdown that renders right.",
   "author": {
     "name": "Lemmafour",
