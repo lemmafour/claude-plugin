@@ -11,9 +11,8 @@ This plugin has two parts:
   `render_pdf` tool shows the PDF in the chat with a Download button, and
   `validate_accessibility` checks a document against PDF/UA-1.
 - **The `lemmafour-publish` skill**: how to write Markdown that renders right (math,
-  questions and answer keys, layout settings, accessibility), and a small Node script,
-  `skills/lemmafour-publish/scripts/lemmafour.mjs`, that agents which can run commands use
-  when the connector is not connected.
+  questions and answer keys, layout settings, accessibility). It is instructions only, and
+  runs no code on your computer.
 
 ## Use it
 
@@ -29,12 +28,12 @@ https://lemmafour.com/pricing
 ## Data
 
 - **What is sent:** the Markdown document Claude writes, the settings, and any images the
-  document uses, to Lemmafour at `mcp.lemmafour.com`. The connector sends them through
-  Claude; the script sends them directly over HTTPS. Nothing else is read or sent.
+  document uses, to Lemmafour at `mcp.lemmafour.com`, through the connector. Nothing else
+  is read or sent.
 - **What is kept:** nothing. Documents and PDFs are processed in memory and never stored.
   Lemmafour logs only metadata, such as the template, page count and error codes.
 - **Accounts:** signing in (for a plan's features) uses Lemmafour's OAuth sign-in in your
-  browser. The script never reads or sends credentials.
+  browser.
 - **Download links:** in chats that take no files from tools, the PDF comes as a link to
   `mcp.lemmafour.com/save` that carries the document in the link itself; that page has
   Lemmafour make the PDF and stores nothing.
@@ -48,8 +47,8 @@ https://lemmafour.com/terms · Help: https://lemmafour.com/contact
   Discover, and connect the Lemmafour connector from the plugin's Connectors tab.
 - **Claude Code:** `/plugin` and find Lemmafour, or add this repository as a marketplace:
   `claude plugin marketplace add lemmafour/claude-plugin`, then `claude plugin install lemmafour@lemmafour`.
-- **Other agents that support Agent Skills:** copy `skills/lemmafour-publish` into the
-  agent's skills folder; the script needs Node 18 or newer.
+- **Other assistants and agents:** add the connector by its address. See
+  https://lemmafour.com/developers
 
 ## License
 

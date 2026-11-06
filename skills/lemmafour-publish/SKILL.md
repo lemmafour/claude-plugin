@@ -2,7 +2,7 @@
 name: lemmafour-publish
 description: Turn Markdown into a print-quality, accessible PDF with Lemmafour. Use when the user wants a PDF (or a printable, shareable or accessible document) from notes, worksheets, answer keys, reports, papers, lecture notes, resumes, letters or memos, especially with LaTeX math, tables or code. Also use to check a document against PDF/UA-1 accessibility.
 license: MIT
-compatibility: Uses the Lemmafour connector's render_pdf tool when it is connected. Otherwise runs scripts/lemmafour.mjs, which needs Node 18 or newer and internet access to mcp.lemmafour.com.
+compatibility: Needs the Lemmafour connector (https://mcp.lemmafour.com/mcp), which provides the render_pdf and validate_accessibility tools. The plugin includes it.
 ---
 
 # Lemmafour publish
@@ -18,28 +18,30 @@ in memory and never stored.
    worksheets, quizzes and answer keys `assignment`; CVs `resume`; reports `report`.
 3. Before rendering, re-read the Markdown against "Math that renders" below. Mistakes
    there print raw LaTeX in the PDF.
-4. Make the PDF the first way that is available:
-   - **The Lemmafour connector** (its `render_pdf` tool is listed): call `render_pdf` once
-     with the Markdown and every layout wish in `settings`. It shows the PDF in the chat
-     with a Download button, and it signs the user in when a choice needs a Lemmafour plan.
-     Reuse the `appliedSettings` it returns when you revise. `validate_accessibility`
-     checks a document without making a file.
-   - **The script**, where you can run commands and reach the internet (Claude Code, other
-     coding agents): write the document to a `.md` file in the user's working folder,
-     never inside this skill's folder. Run, from that folder:
-     `node ${CLAUDE_SKILL_DIR}/scripts/lemmafour.mjs render doc.md --out doc.pdf`
-     (the script is `scripts/lemmafour.mjs` next to this file). Add `--free` when the user
-     has no Lemmafour plan, so paid choices become free ones instead of an error. For an
-     accessible PDF, run `... lemmafour.mjs validate doc.md` first and fix every error.
+4. Call the connector's `render_pdf` once with the Markdown and every layout wish in
+   `settings`. In a chat it shows the PDF with a Download button. In a terminal such as
+   Claude Code, which shows no preview, add `delivery: "pdf"` and give the user the
+   `downloadUrl` it returns. It signs the user in when a choice needs a Lemmafour plan.
+   Reuse the `appliedSettings` it returns when you revise. `validate_accessibility` checks
+   a document without making a file; for an accessible PDF, run it first and fix every
+   error. If `render_pdf` isn't listed, see "If the connector isn't connected".
 5. Read the result. `appliedSettings` shows the layout used and the notes any setting
    Lemmafour translated: keep the frontmatter in sync with them. If the render failed, fix
    the document using the diagnostics (below) and try again. Stop after three attempts and
    show the user the remaining diagnostics.
-6. Tell the user where the PDF is, its page count, and any warnings worth knowing.
+6. Tell the user how to get the PDF, its page count, and any warnings worth knowing.
 
-The script needs Node 18 or newer and no packages. Run one command per call: the exit code
-tells you whether that step worked. It sends the `.md` file and the images it references
-to mcp.lemmafour.com and nothing else.
+## If the connector isn't connected
+
+Without `render_pdf` you can't make the PDF, so say so plainly and don't try to reach
+Lemmafour any other way. Tell the user how to connect it:
+
+- **Claude on the web, desktop or Cowork:** Customize → Plugins → Lemmafour → Connectors
+  tab, or open https://claude.ai/customize/connectors?modal=add-custom-connector&connectorName=Lemmafour&connectorUrl=https%3A%2F%2Fmcp.lemmafour.com%2Fmcp
+- **Claude Code:** run `/mcp` and check that the Lemmafour server is connected.
+
+Then offer the finished Markdown. The user can also paste it into the editor at
+https://lemmafour.com/tools/markdown-to-pdf/, which makes the PDF on their device.
 
 ## Frontmatter
 
@@ -49,8 +51,8 @@ title: Fractions practice        # required for accessible PDFs
 author: Ms Rivera
 date: 2026-10-04                 # YYYY-MM-DD; required for PDF/A profiles
 language: en                     # BCP 47 tag: en, en-GB, de, fr, ja ...
-template: assignment             # or pass --template
-pdfProfile: tagged               # or pass --profile
+template: assignment             # or settings.template
+pdfProfile: tagged               # or the profile argument
 ---
 ```
 
@@ -61,7 +63,7 @@ the document's top-level sections (PDF/UA requires the first heading to be level
 
 ## Layout settings
 
-All in the frontmatter (or `render_pdf`'s `settings`, or the script's `--set key=value`).
+All in the frontmatter or `render_pdf`'s `settings`.
 Leave out what the user didn't ask for; the template decides the rest.
 
 | Setting | Values | |
@@ -90,12 +92,10 @@ Pandoc or LaTeX names (`classoption: twocolumn`, `geometry: margin=1in`, `fontsi
   `manual`, `lecture-notes`, `archival`.
 - Profiles: `tagged` (default, free), `pdf-ua-1` (accessible), `pdf-a-2u` (archival),
   `pdf-a-2a-ua-1` (both). Every profile except `tagged` is paid.
-- With the connector, paid choices preview for free; the download asks the user to sign in
-  to a Day Pass or Pro. The script has no account: a paid choice fails with an `access.*`
-  diagnostic whose `fix` names the free alternative, every paid choice listed at once.
-  Apply the fixes (or render with `--free`) and tell the user what changed, or make the PDF
-  with the connector so they can use their plan (https://lemmafour.com/pricing/). Never
-  pretend a paid feature was applied.
+- Free features need no account. Paid choices preview for free, and the download asks the
+  user to sign in to a Day Pass or Pro (https://lemmafour.com/pricing/). When the user has
+  no plan, set `withoutPlan: "use-free-alternative"` to make the PDF with free choices, and
+  tell the user what changed. Never pretend a paid feature was applied.
 - Validation is always free, even for paid templates.
 
 ## Math that renders
@@ -136,21 +136,21 @@ parts you cannot guess:
 - Chemistry and units are plain LaTeX: `$\mathrm{CO_2}$`, `$9.8\,\mathrm{m/s^2}$`.
 - Habits from LaTeX, Pandoc, Quarto and Obsidian (`\newpage`, `\textbf{}`, `\label`/`\eqref`,
   `\SI{}`, `\ce{}`, `~sub~`, `::: {.callout-note}`, `> [!info] Title`) are translated, and
-  the script lists each translation in `notes`. Write the Lemmafour form when you revise.
-- For a whole Pandoc, Quarto, Obsidian or MyST file, add `--flavor pandoc` (or quarto,
-  obsidian, myst); `.qmd` files are read as Quarto automatically.
+  the result lists each translation in `notes`. Write the Lemmafour form when you revise.
+- For a whole Pandoc, Quarto, Obsidian or MyST file, set `markdownFlavor` to `pandoc` (or
+  quarto, obsidian, myst).
 - Tables, fenced code blocks with a language, footnotes, task lists and block quotes work as
   in GitHub Markdown.
-- Images: `![A labelled number line from 0 to 1](images/line.png)`. Use relative paths next
-  to the `.md` file; the script uploads PNG, JPEG, GIF, WebP and SVG files it finds
-  (at most 64 images, 4 MB each, 12 megapixels each). Never encode images as base64
-  yourself; let the script read the files. For a diagram you draw, write an `.svg` file next
-  to the `.md`. Remote image URLs are not fetched: download the image first, or the result
-  lists it under `missingImages` for the user to add in the Lemmafour editor.
+- Images: `![A labelled number line from 0 to 1](images/line.png)`, with a relative path.
+  For a diagram you draw, send the SVG source in `assets` as `{ "path": "images/line.svg",
+  "text": "<svg ...>" }`. Never write a photo out as base64: it takes minutes. Reference it
+  by name without sending it, and the result lists it under `missingImages`. Tell the user
+  to add it in the Lemmafour editor from `openInLemmafourUrl`. Remote image URLs are not
+  fetched, and are listed the same way.
 - Not rendered by the API: Mermaid and Vega diagrams (use an exported image), and `[@key]`
   citations (use footnotes). Tabs don't line text up; use a table.
 - Keep documents under 50 pages per render (split longer ones into parts). The Markdown
-  file may be at most 2 MB.
+  may be at most 2 MB.
 
 ## Accessibility (PDF/UA-1)
 
@@ -170,7 +170,7 @@ checker needs:
 
 ## Reading the result
 
-The script prints one JSON object:
+`render_pdf` returns one JSON object, with the problems in `diagnostics`:
 
 ```json
 { "ok": false, "status": 422, "error": { "code": "render.failed", "message": "..." },
@@ -179,18 +179,10 @@ The script prints one JSON object:
     "fix": { "frontmatter": { "key": "template", "value": "assignment" } } } ] }
 ```
 
-- `range.startLine` is the line in your `.md` file.
+- `range.startLine` is the line in your Markdown.
 - `fix.frontmatter` is a machine-applicable fix: set that key to that value and retry.
 - `hints` say what to change otherwise.
 - Warnings never block the PDF; mention important ones to the user.
 - `render.too_long_for_api`: split the document, or suggest opening it in the Lemmafour
   editor (https://lemmafour.com/tools/markdown-to-pdf/), which renders up to 1,000 pages
   on the user's device.
-- Exit code 2 means a usage, network or sign-in problem, not a document problem.
-
-## Configuration
-
-- The script sends no credentials. Free features need no account; for a plan's features,
-  use the connector.
-- `LEMMAFOUR_API_URL`: the API base URL (default `https://mcp.lemmafour.com`), for testing
-  against another Lemmafour server.
